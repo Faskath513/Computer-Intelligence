@@ -1,77 +1,87 @@
 {
   "numeric": [
-    "age",
-    "height_cm",
-    "weight_kg",
+    "sleep_duration",
+    "heart_rate",
     "bmi",
-    "sleep_hours",
-    "physical_activity_hours",
-    "screen_time_hours"
+    "calorie_expenditure",
+    "step_count",
+    "exercise_duration",
+    "water_intake"
   ],
-  "numeric_meta": {
-    "age": {
-      "min": 15.0,
-      "max": 25.0,
-      "mean": 19.9,
-      "step": 1.0
-    },
-    "height_cm": {
-      "min": 136.3,
-      "max": 207.3,
-      "mean": 167.67,
-      "step": 0.1
-    },
-    "weight_kg": {
-      "min": 26.9,
-      "max": 102.4,
-      "mean": 64.58,
-      "step": 0.1
-    },
-    "bmi": {
-      "min": 9.0,
-      "max": 47.9,
-      "mean": 23.22,
-      "step": 0.1
-    },
-    "sleep_hours": {
-      "min": 3.0,
-      "max": 11.0,
-      "mean": 7.02,
-      "step": 0.1
-    },
-    "physical_activity_hours": {
-      "min": 0.0,
-      "max": 15.0,
-      "mean": 3.04,
-      "step": 0.1
-    },
-    "screen_time_hours": {
-      "min": 1.0,
-      "max": 11.6,
-      "mean": 5.07,
-      "step": 0.1
-    }
-  },
   "categorical": {
-    "gender": [
-      "Female",
-      "Male",
-      "Other"
+    "diet_type": [
+      "veg",
+      "non-veg",
+      "balanced"
     ],
     "stress_level": [
-      "High",
-      "Low",
-      "Moderate"
+      "high",
+      "low",
+      "medium"
     ],
-    "diet_quality": [
-      "Average",
-      "Good",
-      "Poor"
+    "sleep_quality": [
+      "average",
+      "poor",
+      "good"
     ],
-    "academic_pressure": [
-      "High",
-      "Low",
-      "Moderate"
+    "physical_activity_level": [
+      "sedentary",
+      "moderate",
+      "active"
+    ],
+    "smoking_alcohol": [
+      "yes",
+      "occasional",
+      "no"
+    ],
+    "gender": [
+      "female",
+      "other",
+      "male"
     ]
+  },
+  "numeric_meta": {
+    "sleep_duration": {
+      "min": 3.0,
+      "max": 10.0,
+      "mean": 6.992597310813253,
+      "step": 0.07
+    },
+    "heart_rate": {
+      "min": 50.0,
+      "max": 107.7,
+      "mean": 75.09650428358898,
+      "step": 0.5770000000000001
+    },
+    "bmi": {
+      "min": 16.0,
+      "max": 34.82,
+      "mean": 22.98492504917257,
+      "step": 0.1882
+    },
+    "calorie_expenditure": {
+      "min": 1200.0,
+      "max": 3580.0,
+      "mean": 2226.0849309909217,
+      "step": 23.8
+    },
+    "step_count": {
+      "min": 1002.0,
+      "max": 14999.0,
+      "mean": 8615.953050407294,
+      "step": 139.97
+    },
+    "exercise_duration": {
+      "min": 0.0,
+      "max": 99.8,
+      "mean": 38.75145557512072,
+      "step": 0.998
+    },
+    "water_intake": {
+      "min": 0.5,
+      "max": 4.72,
+      "mean": 2.18854223018167,
+      "step": 0.042199999999999994
+    }
   }
 }
