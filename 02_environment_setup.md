@@ -71,8 +71,8 @@ __pycache__/
 
 ## Sanity check before moving on
 
-- [ ] `python -c "import pandas, sklearn, tensorflow, streamlit; print('ok')"` runs clean
-- [ ] `data/raw/` contains `train.csv`, `test.csv`, `sample_submission.csv`
-- [ ] Repo committed with initial structure
+- [x] `python -c "import pandas, sklearn, tensorflow, streamlit; print('ok')"` runs clean
+- [x] `data/raw/` contains `train.csv`, `test.csv`, `sample_submission.csv`
+- [x] Repo committed with initial structure
 
 Next: `03_eda.md`

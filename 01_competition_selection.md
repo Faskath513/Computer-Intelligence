@@ -59,10 +59,10 @@ what Kaggle scores you on.
 
 - [x] Competition chosen: Playground Series S6E7 — Predicting Student Health Risk
 - [x] Target column, metric, and deadline confirmed
-- [ ] Create a free Kaggle account if you don't have one
-- [ ] Join the competition ("Enroll") — read and accept the rules
-- [ ] Download `train.csv`, `test.csv`, `sample_submission.csv`
-- [ ] Skim the competition's "Discussion" and public notebooks tab — see what
+- [x] Create a free Kaggle account if you don't have one
+- [x] Join the competition ("Enroll") — read and accept the rules
+- [x] Download `train.csv`, `test.csv`, `sample_submission.csv`
+- [x] Skim the competition's "Discussion" and public notebooks tab — see what
       others are already trying (don't copy — just get oriented)
 
 Decision record is fully filled in — move to `02_environment_setup.md`.
