@@ -1,0 +1,77 @@
+{
+  "numeric": [
+    "age",
+    "height_cm",
+    "weight_kg",
+    "bmi",
+    "sleep_hours",
+    "physical_activity_hours",
+    "screen_time_hours"
+  ],
+  "numeric_meta": {
+    "age": {
+      "min": 15.0,
+      "max": 25.0,
+      "mean": 19.9,
+      "step": 1.0
+    },
+    "height_cm": {
+      "min": 136.3,
+      "max": 207.3,
+      "mean": 167.67,
+      "step": 0.1
+    },
+    "weight_kg": {
+      "min": 26.9,
+      "max": 102.4,
+      "mean": 64.58,
+      "step": 0.1
+    },
+    "bmi": {
+      "min": 9.0,
+      "max": 47.9,
+      "mean": 23.22,
+      "step": 0.1
+    },
+    "sleep_hours": {
+      "min": 3.0,
+      "max": 11.0,
+      "mean": 7.02,
+      "step": 0.1
+    },
+    "physical_activity_hours": {
+      "min": 0.0,
+      "max": 15.0,
+      "mean": 3.04,
+      "step": 0.1
+    },
+    "screen_time_hours": {
+      "min": 1.0,
+      "max": 11.6,
+      "mean": 5.07,
+      "step": 0.1
+    }
+  },
+  "categorical": {
+    "gender": [
+      "Female",
+      "Male",
+      "Other"
+    ],
+    "stress_level": [
+      "High",
+      "Low",
+      "Moderate"
+    ],
+    "diet_quality": [
+      "Average",
+      "Good",
+      "Poor"
+    ],
+    "academic_pressure": [
+      "High",
+      "Low",
+      "Moderate"
+    ]
+  }
+}

@@ -23,7 +23,7 @@ def predict_sklearn(test_csv="data/raw/test.csv",
         "health_condition": preds,
     })
     submission.to_csv(output_path, index=False)
-    print(f"Submission saved → {output_path}")
+    print(f"Submission saved -> {output_path}")
     print(submission["health_condition"].value_counts())
     return submission
 
@@ -53,7 +53,7 @@ def predict_keras(test_csv="data/raw/test.csv",
         "health_condition": preds,
     })
     submission.to_csv(output_path, index=False)
-    print(f"Submission saved → {output_path}")
+    print(f"Submission saved -> {output_path}")
     print(submission["health_condition"].value_counts())
     return submission
 

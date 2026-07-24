@@ -35,7 +35,7 @@ def build_feature_meta(raw_dir="data/raw", out_path="models/feature_meta.json"):
     with open(out_path, "w") as f:
         json.dump(meta, f, indent=2)
 
-    print(f"Feature metadata saved → {out_path}")
+    print(f"Feature metadata saved -> {out_path}")
     print(f"  Numeric features ({len(numeric_cols)}): {numeric_cols}")
     print(f"  Categorical features ({len(categorical_cols)}): {list(categorical_opts.keys())}")
     return meta

@@ -29,7 +29,7 @@ def fit_and_save_preprocessor(X_train, numeric_cols, categorical_cols,
     preprocessor = build_preprocessor(numeric_cols, categorical_cols)
     preprocessor.fit(X_train)
     joblib.dump(preprocessor, save_path)
-    print(f"Preprocessor saved → {save_path}")
+    print(f"Preprocessor saved -> {save_path}")
     return preprocessor
 
 

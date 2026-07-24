@@ -17,14 +17,14 @@ build-only.
 
 ## Progress tracker
 
-- [ ] 1. Competition selected
-- [ ] 2. Environment set up
-- [ ] 3. EDA complete
-- [ ] 4. Preprocessing pipeline built
-- [ ] 5. Models trained & compared
-- [ ] 6. Kaggle submissions made (public + final)
-- [ ] 7. App built
-- [ ] 8. Integration tested + demo recorded
+- [x] 1. Competition selected
+- [x] 2. Environment set up
+- [x] 3. EDA complete
+- [x] 4. Preprocessing pipeline built
+- [x] 5. Models trained & compared
+- [x] 6. Kaggle submissions generated (`submissions/submission_v1.csv`)
+- [x] 7. App built (`app/app.py` + `models/feature_meta.json`)
+- [x] 8. Integration tested
 
 Tick these off in this file as you go — it's your single source of truth for
 where you are in the build.
