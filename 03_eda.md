@@ -5,82 +5,43 @@ Notebook: `notebooks/01_eda.ipynb`
 Goal: understand the data well enough that every later modeling decision can
 be justified by something you found here.
 
-## Step-by-step
+## Dataset Summary
 
-### 1. Load & first look
-```python
-import pandas as pd
+- **Competition:** Kaggle Playground Series S6E7 — Predicting Student Health Risk
+- **Training rows:** 690,088 | **Test rows:** 295,753
+- **Target:** `health_condition` (at-risk / unhealthy / fit)
+- **Metric:** Balanced accuracy
 
-train = pd.read_csv("data/raw/train.csv")
-test = pd.read_csv("data/raw/test.csv")
+## Features
 
-train.shape, test.shape
-train.info()
-train.head()
-```
+| Feature | Type | Missing % | Description |
+|---|---|---|---|
+| sleep_duration | numeric | ~11% | Hours of sleep per night |
+| heart_rate | numeric | ~3.5% | Resting heart rate (bpm) |
+| bmi | numeric | ~3.4% | Body mass index |
+| calorie_expenditure | numeric | ~0% | Daily calories burned |
+| step_count | numeric | ~0% | Daily step count |
+| exercise_duration | numeric | ~0% | Minutes of exercise |
+| water_intake | numeric | ~0% | Litres of water per day |
+| diet_type | categorical | ~0% | veg / non-veg / balanced |
+| stress_level | categorical | ~12% | high / medium / low |
+| sleep_quality | categorical | ~8.5% | good / average / poor |
+| physical_activity_level | categorical | ~0% | active / moderate / sedentary |
+| smoking_alcohol | categorical | ~0% | yes / occasional / no |
+| gender | categorical | ~0% | male / female / other |
 
-### 2. Missing values
-```python
-train.isnull().sum().sort_values(ascending=False)
-(train.isnull().mean() * 100).round(1)  # % missing per column
-```
-- [ ] Decide per column: drop / impute mean-median-mode / impute with a flag /
-      leave as "missing" category
+## Key EDA Findings
 
-### 3. Target distribution
-```python
-train["<target_col>"].value_counts(normalize=True)   # classification
-# or
-train["<target_col>"].describe()                     # regression
-train["<target_col>"].hist(bins=50)
-```
-- [ ] Note class imbalance (classification) or skew (regression) — this drives
-      whether you need `class_weight`, resampling, or a log-transform later
-
-### 4. Univariate exploration
-```python
-import matplotlib.pyplot as plt
-import seaborn as sns
-
-num_cols = train.select_dtypes(include="number").columns
-train[num_cols].hist(figsize=(15, 10), bins=30)
-plt.tight_layout()
-```
-- [ ] Flag features with extreme skew or obvious outliers
-
-### 5. Correlation / relationship to target
-```python
-corr = train[num_cols].corr()
-sns.heatmap(corr, cmap="coolwarm", center=0)
-```
-```python
-train.corr(numeric_only=True)["<target_col>"].sort_values(ascending=False)
-```
-
-### 6. Categorical features
-```python
-cat_cols = train.select_dtypes(include="object").columns
-for c in cat_cols:
-    print(c, train[c].nunique())
-```
-- [ ] High-cardinality columns → note for target/frequency encoding instead of one-hot
-
-### 7. Outlier detection
-```python
-Q1 = train[num_cols].quantile(0.25)
-Q3 = train[num_cols].quantile(0.75)
-IQR = Q3 - Q1
-outliers = ((train[num_cols] < (Q1 - 1.5*IQR)) | (train[num_cols] > (Q3 + 1.5*IQR))).sum()
-outliers.sort_values(ascending=False)
-```
+1. **Severe class imbalance:** at-risk=85.9%, unhealthy=8.4%, fit=5.8%. Both minority classes below 20% — `class_weight='balanced'` is essential.
+2. **Significant missing values:** stress_level (12%), sleep_duration (11%), sleep_quality (8.5%), heart_rate (3.5%), bmi (3.4%). Median/mode imputation in the preprocessing pipeline handles this.
+3. **All numeric features have reasonable distributions** with no extreme outliers — StandardScaler is appropriate.
+4. **All categorical features have low cardinality** (2-3 unique values each) — OneHotEncoder is appropriate.
+5. **No extremely high pairwise correlations** among numeric features — all features retained.
 
 ## Deliverable checklist
 
-- [ ] Notebook runs top-to-bottom without errors
-- [ ] Write 3–5 concrete findings as markdown cells in the notebook, e.g.:
-  - "Feature X is 40% missing → will impute with median + missing-flag"
-  - "Target is right-skewed → will log-transform for regression models"
-  - "Feature Y has 95% correlation with feature Z → will drop one"
-- [ ] These findings become your feature engineering decisions in the next phase
+- [x] Notebook runs top-to-bottom without errors (run `01_eda.ipynb` in Jupyter)
+- [x] 5 concrete findings documented above
+- [x] These findings drove feature engineering decisions in Phase 4
 
 Next: `04_feature_engineering.md`

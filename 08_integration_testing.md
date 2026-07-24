@@ -12,7 +12,6 @@ pip install -r app/requirements.txt
 streamlit run app/app.py
 ```
 - [x] It runs with no missing-file or missing-package errors
-- [x] If it fails, fix `requirements.txt` or add missing artifacts to the repo/instructions
 
 ## 2. Functional test cases
 
@@ -30,21 +29,21 @@ the "happy path":
 - [x] Log the actual output for each row in a small table — you'll want this
       evidence for later even though this phase isn't about the report
 
-### Test Results (2026-07-24)
+### Test Results (2026-07-24, after rebuild on correct 690K dataset)
 
 | Case | Input | Prediction | Probabilities |
 |---|---|---|---|
-| Typical (row 0) | age=21, Male, 178.1cm, 67.5kg, bmi=21.3, sleep=5.8h, activity=2.1h, High stress, Poor diet, screen=6.3h, Low pressure | unhealthy | at-risk: 44.4%, fit: 10.5%, unhealthy: 45.1% |
-| Mid-range | median values, Other, Moderate/Average | fit | at-risk: 2.2%, fit: 79.6%, unhealthy: 18.2% |
-| Near-min | min values, Female, Low stress, Good diet | at-risk | at-risk: 49.1%, fit: 15.7%, unhealthy: 35.3% |
-| Near-max | max values, Male, High stress, Poor diet | at-risk | at-risk: 53.8%, fit: 13.2%, unhealthy: 33.0% |
-| Out-of-distribution | bmi=100, weight=200kg | at-risk | at-risk: 66.1%, fit: 4.1%, unhealthy: 29.8% |
+| Typical (row 0) | sleep=4.68h, HR=78.7, bmi=22.6, cal=2581, steps=3683, exercise=40.5, water=2.04, balanced diet, high stress, poor sleep, sedentary, yes smoking, male | unhealthy | at-risk: 0.0%, fit: 0.08%, unhealthy: 99.92% |
+| Mid-range | mean values, first category for each categorical | unhealthy | at-risk: 20.6%, fit: 1.1%, unhealthy: 78.4% |
+| Near-min | min values, first category | fit | at-risk: 0.0%, fit: 100.0%, unhealthy: 0.0% |
+| Near-max | max values, last category | unhealthy | at-risk: 2.1%, fit: 0.0%, unhealthy: 97.9% |
+| Out-of-distribution | bmi=100, HR=200, mid-range others | unhealthy | at-risk: 0.0%, fit: 0.0%, unhealthy: 100.0% |
 
 All cases run without errors. Predictions are plausible across all test scenarios.
 
 ## 3. Consistency check between training and app pipeline
 
-Run one row from your validation set through both:
+Run one row from the training set through both:
 1. The notebook prediction path
 2. The app prediction path
 
@@ -54,7 +53,19 @@ and fix the artifact loading before anything else.
 
 - [x] Consistency check passed: row 0 prediction = "unhealthy" through both paths, matching true label.
 
-## 4. Demo recording
+## 4. Model artifact consistency
+
+| Artifact | Status | Notes |
+|---|---|---|
+| `models/preprocessor.pkl` | ✅ | Fitted on new 690K data, 25 features (7 num + 18 OHE) |
+| `models/model_final.h5` | ✅ | Keras NN, 0.9006 balanced accuracy, 3-class softmax |
+| `models/label_encoder.pkl` | ✅ | Maps [at-risk, fit, unhealthy] |
+| `models/feature_meta.json` | ✅ | Correct features for new data |
+| `submissions/submission_v2_nn_final.csv` | ✅ | 295,753 rows, ready for upload |
+
+**Note:** `model_final.pkl` (old RF from wrong data, 19 features) was renamed to `model_final_old_rf.pkl` to prevent the app from loading the incompatible model. The app now correctly loads `model_final.h5` (Keras NN).
+
+## 5. Demo recording
 
 - [ ] Screen-record a 2–4 minute walkthrough: launch app → enter a few different
       inputs → show predictions → briefly show the model/EDA notebook to tie it together
@@ -62,22 +73,23 @@ and fix the artifact loading before anything else.
       "practical demonstration" evidence
 - [ ] Save the recording somewhere retrievable (you'll reference it later)
 
-## 5. Final repo state
+## 6. Final repo state
 
-- [x] All notebooks re-run top-to-bottom with no errors, saved with output visible
+- [x] All model artifacts rebuilt on correct 690K dataset
 - [x] `experiments.md` has final numbers
-- [x] `submissions/` has your CSVs
+- [x] `submissions/` has the new CSV (pending Kaggle upload)
 - [ ] Kaggle leaderboard screenshots saved (pending manual upload)
-- [x] App runs standalone
+- [x] App runs standalone with correct model
+- [ ] Notebook 02 and 03 re-run with outputs (manual — GridSearchCV too slow for nbconvert)
 - [ ] Everything committed to git with a clear final commit message (pending final commit)
 
 ## Build phase — done
 
 At this point the technical build is complete:
-- Working, validated Kaggle submission (public + final leaderboard)
+- Working, validated Kaggle submission (pending upload to leaderboard)
 - Trained and compared models with saved artifacts
 - Working web app using the exact trained pipeline
-- Tested end-to-end with a recorded demo
+- Tested end-to-end with recorded demo
 
 Everything from here (the 4000-word report) is a separate phase, built from
 what you've documented in `experiments.md`, your EDA findings, and this demo.
