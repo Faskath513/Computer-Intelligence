@@ -29,25 +29,40 @@ Avoid unless you have strong prior experience:
 - Very large datasets (multi-GB) — will blow your time budget on infra, not modeling
 - Competitions with heavy custom evaluation code
 
-## Decision record — fill this in and don't revisit it
+## Decision record — LOCKED & CONFIRMED
 
 ```
-Competition name:      ____________________
-Kaggle URL:             ____________________
-Task type:              classification / regression / other: ______
-Target column:          ____________________
-Evaluation metric:      ____________________
-Competition deadline:   ____________________
+Competition name:      Predicting Student Health Risk
+Kaggle URL:             kaggle.com/competitions/playground-series-s6e7
+Series:                 Kaggle Playground Series — Season 6, Episode 7
+Task type:              Multi-class classification (3 classes)
+Target column:          health_condition
+Class labels:           at-risk / unhealthy / fit
+Evaluation metric:      Balanced accuracy
+Competition start:      July 1, 2026
+Competition deadline:   July 31, 2026 (11:59 PM UTC)
 Your submission deadline: ____________________
-Eligible? (Y/N + why):  ____________________
+Eligible? (Y/N + why):  Y — active competition, fixed start/close dates
+                         (not a rolling leaderboard), tabular data, fits
+                         classification + ensemble/NN techniques allowed
+                         by the brief.
 ```
+
+**Important modeling implication:** the metric is **balanced accuracy**, not
+plain accuracy. This means the classes may be imbalanced — check class
+distribution of `health_condition` early in EDA (Phase 3), and if imbalanced,
+plan to use `class_weight="balanced"` in sklearn models and weighted loss (or
+oversampling) in the neural net, so your validation metric actually matches
+what Kaggle scores you on.
 
 ## Immediate next actions
 
+- [x] Competition chosen: Playground Series S6E7 — Predicting Student Health Risk
+- [x] Target column, metric, and deadline confirmed
 - [ ] Create a free Kaggle account if you don't have one
 - [ ] Join the competition ("Enroll") — read and accept the rules
 - [ ] Download `train.csv`, `test.csv`, `sample_submission.csv`
 - [ ] Skim the competition's "Discussion" and public notebooks tab — see what
       others are already trying (don't copy — just get oriented)
 
-Once this file's decision record is filled in, move to `02_environment_setup.md`.
+Decision record is fully filled in — move to `02_environment_setup.md`.
