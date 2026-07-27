@@ -3,6 +3,8 @@ data/raw/
 data/processed/
 models/*.pkl
 models/*.h5
+models/*.txt
+models/*.json
 __pycache__/
 .ipynb_checkpoints/
 .DS_Store
