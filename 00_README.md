@@ -20,11 +20,19 @@ build-only.
 - [x] 1. Competition selected
 - [x] 2. Environment set up
 - [x] 3. EDA complete
-- [x] 4. Preprocessing pipeline built
-- [x] 5. Models trained & compared
-- [x] 6. Kaggle submissions generated (`submissions/submission_v1.csv`)
-- [x] 7. App built (`app/app.py` + `models/feature_meta.json`)
+- [x] 4. Preprocessing pipeline built (V4 with feature engineering)
+- [x] 5. Models trained & compared (V4: LightGBM, XGBoost, RandomForest)
+- [x] 6. Kaggle submissions generated (10 submissions, best public: 0.89764)
+- [x] 7. App built (`app/app.py` with V4 LightGBM + feature engineering)
 - [x] 8. Integration tested
 
-Tick these off in this file as you go — it's your single source of truth for
-where you are in the build.
+## Final Results
+
+| Model | Val Balanced Accuracy | Kaggle Public |
+|---|---|---|
+| LightGBM V4 (conservative) | **0.9337** | pending |
+| LightGBM V3 (original) | 0.8987 | **0.89764** |
+| Random Forest V4 | 0.8977 | 0.89314 |
+| XGBoost V4 | ~0.90 | 0.85488 |
+
+> **Winner: LightGBM V4** — val 0.9337, `submission_v4_lgb_v3.csv`

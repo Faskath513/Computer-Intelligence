@@ -2,108 +2,70 @@
 
 File: `app/app.py`
 
-## 1. Minimum viable app
+## 1. Current App (V4)
 
-```python
-import streamlit as st
-import pandas as pd
-import joblib
+The app loads:
+- `models/preprocessor_v4.pkl` — V4 preprocessor (56 features)
+- `models/model_lgb_v3.txt` — LightGBM V4 model
+- `models/label_encoder.pkl` — label encoder
+- `models/feature_meta.json` — feature metadata for input widgets
 
-st.set_page_config(page_title="<Your Model> Predictor", layout="centered")
+### Feature Engineering in App
 
-@st.cache_resource
-def load_artifacts():
-    preprocessor = joblib.load("models/preprocessor.pkl")
-    model = joblib.load("models/model_final.pkl")   # or load_model(...) for Keras
-    return preprocessor, model
+The app applies the same `add_features()` function used in training:
+- 31 engineered features computed from 13 original inputs
+- BMI categories, sleep/exercise flags, interaction features, risk scores
+- Categorical encodings (stress_num, quality_num, activity_num, smoking_num)
 
-preprocessor, model = load_artifacts()
-
-st.title("<Competition Name> — Prediction App")
-st.write("Enter the feature values below to get a prediction from the trained model.")
-
-# --- Build input form: one widget per feature used at training time ---
-with st.form("input_form"):
-    feature_1 = st.number_input("Feature 1", value=0.0)
-    feature_2 = st.selectbox("Feature 2 (category)", options=["A", "B", "C"])
-    # ... repeat for every feature the model expects
-    submitted = st.form_submit_button("Predict")
-
-if submitted:
-    input_df = pd.DataFrame([{
-        "feature_1": feature_1,
-        "feature_2": feature_2,
-        # match all columns the preprocessor expects, in the right names
-    }])
-
-    X_processed = preprocessor.transform(input_df)
-    prediction = model.predict(X_processed)
-
-    st.subheader("Prediction")
-    st.write(prediction[0])
-
-    # Optional, if classifier supports it:
-    if hasattr(model, "predict_proba"):
-        proba = model.predict_proba(X_processed)
-        st.write("Confidence:", proba.max())
-```
-
-## 2. Nice-to-haves (add if time allows, in this order of value)
-
-- [ ] Show where the input sits relative to the training distribution (a small
-      histogram with a marker line) — makes the "practical demonstration" land better
-- [ ] Batch mode: let the user upload a CSV of multiple rows instead of one manual entry
-- [ ] Basic input validation (ranges, required fields) with `st.error(...)` messages
-- [ ] A short "About this model" expander summarizing which technique is used and why
-
-## 3. `app/requirements.txt`
-
-```
-streamlit
-pandas
-scikit-learn
-joblib
-tensorflow   # only if using a Keras model
-```
-
-## 4. Run it
+### How to Run
 
 ```bash
 cd project-root
 streamlit run app/app.py
 ```
 
-## Alternative: FastAPI (only if you specifically want an "API service" deliverable)
+### App Features
 
-```python
-from fastapi import FastAPI
-import joblib
-import pandas as pd
+- **Input form** with 7 numeric inputs + 6 categorical inputs
+- **Predict button** returns color-coded prediction (green=fit, orange=unhealthy, red=at-risk)
+- **Class probabilities** shown for all 3 classes
+- **About expander** with model info (LightGBM V4, val 0.9337)
 
-app = FastAPI()
-preprocessor = joblib.load("models/preprocessor.pkl")
-model = joblib.load("models/model_final.pkl")
+## 2. App Architecture
 
-@app.post("/predict")
-def predict(payload: dict):
-    df = pd.DataFrame([payload])
-    X = preprocessor.transform(df)
-    pred = model.predict(X)
-    return {"prediction": pred.tolist()[0]}
-
-@app.get("/health")
-def health():
-    return {"status": "ok"}
 ```
-```bash
-uvicorn app.app:app --reload
+User Input (13 features)
+    ↓
+add_features() → 31 new features (44 total raw)
+    ↓
+preprocessor_v4.pkl → SimpleImputer + OneHotEncoder (56 processed features)
+    ↓
+LightGBM Booster → 3-class prediction
+    ↓
+LabelEncoder → at-risk / fit / unhealthy
+    ↓
+Display with probabilities
 ```
 
-## Deliverable checklist
+## 3. `app/requirements.txt`
 
-- [ ] App loads the saved model + preprocessor (not retrained on the fly)
-- [ ] Form/input covers every feature the pipeline expects
-- [ ] Predict button returns a sensible result for normal input
-- [ ] Runs from a clean `pip install -r app/requirements.txt` + `streamlit run`
+```
+streamlit
+pandas
+numpy
+scikit-learn
+joblib
+lightgbm
+xgboost
+```
+
+## 4. Deliverable checklist
+
+- [x] App loads saved model + preprocessor (not retrained on the fly)
+- [x] Form/input covers every feature the pipeline expects
+- [x] Feature engineering matches training pipeline exactly
+- [x] Predict button returns sensible results for normal input
+- [x] Runs from `pip install -r app/requirements.txt` + `streamlit run`
+- [x] Color-coded predictions with class probabilities
 
 Next: `08_integration_testing.md`

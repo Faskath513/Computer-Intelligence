@@ -1,12 +1,9 @@
 # Phase 5 — Modeling
 
-Notebooks: `notebooks/02_baseline_models.ipynb`, `notebooks/03_final_model.ipynb`
-Script: `src/train.py`
+Scripts: `src/train.py`, `src/train_all_models.py`, `src/train_v4.py`
 
 Task: **3-class classification** — target `health_condition` with classes
-`at-risk`, `unhealthy`, `fit`. Scored on **balanced accuracy**, which is the
-average of per-class recall. This has direct code implications below — don't
-skip the class-imbalance handling, or your local score won't match Kaggle's.
+`at-risk`, `unhealthy`, `fit`. Scored on **balanced accuracy** (average per-class recall).
 
 ## 0. Class balance (from EDA)
 
@@ -16,110 +13,88 @@ unhealthy     8.4%
 fit           5.8%
 ```
 
-Both minority classes are below 20% — every model must use `class_weight="balanced"` or equivalent.
+Both minority classes below 20% — every model uses `class_weight="balanced"`.
 
-## 1. Baseline — Logistic Regression
+## V1-V2 Models (Original Features, 25 features)
+
+### Logistic Regression (baseline)
 
 ```python
-from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import balanced_accuracy_score, classification_report
-
-baseline = LogisticRegression(max_iter=1000, class_weight="balanced")
-baseline.fit(X_train_processed, y_train)
-preds = baseline.predict(X_val_processed)
-
-print("Balanced accuracy:", balanced_accuracy_score(y_val, preds))
+lr = LogisticRegression(max_iter=1000, class_weight="balanced")
 ```
-
 **Result:** 0.8574 balanced accuracy
 
-## 2. Ensemble — Random Forest (tuned)
+### Random Forest (GridSearchCV tuned)
 
 ```python
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import GridSearchCV
-
-rf = RandomForestClassifier(random_state=42, class_weight="balanced")
-param_grid = {
-    "n_estimators": [100, 300],
-    "max_depth": [None, 10, 20],
-    "min_samples_leaf": [1, 5],
-}
-grid = GridSearchCV(rf, param_grid, cv=5, scoring="balanced_accuracy", n_jobs=-1)
-grid.fit(X_train_processed, y_train)
-best_rf = grid.best_estimator_
+rf = RandomForestClassifier(n_estimators=300, min_samples_leaf=5,
+                            class_weight="balanced", random_state=42)
 ```
-
-**Best params:** n_estimators=300, min_samples_leaf=5, max_depth=None
 **Result:** 0.8790 balanced accuracy | CV: 0.8771 ± 0.0004
 
-## 3. Neural Network — Keras MLP (3-class softmax)
+### Neural Network (Keras MLP)
 
 ```python
-import tensorflow as tf
-from tensorflow.keras import layers, models
-from sklearn.preprocessing import LabelEncoder
-from sklearn.utils.class_weight import compute_class_weight
-
-le = LabelEncoder()
-y_train_enc = le.fit_transform(y_train)
-
-class_weights = compute_class_weight("balanced", classes=np.unique(y_train_enc), y=y_train_enc)
-class_weight_dict = dict(enumerate(class_weights))
-
-nn = models.Sequential([
-    layers.Input(shape=(n_features,)),
-    layers.Dense(128, activation="relu"),
-    layers.Dropout(0.3),
-    layers.Dense(64, activation="relu"),
-    layers.Dropout(0.2),
-    layers.Dense(3, activation="softmax"),
+nn = Sequential([
+    Dense(128, activation="relu"), Dropout(0.3),
+    Dense(64, activation="relu"), Dropout(0.2),
+    Dense(3, activation="softmax"),
 ])
-nn.compile(optimizer="adam", loss="sparse_categorical_crossentropy", metrics=["accuracy"])
+```
+**Result:** 0.9006 balanced accuracy (15 epochs, early stopping)
 
-history = nn.fit(
-    X_train_processed, y_train_enc,
-    validation_data=(X_val_processed, y_val_enc),
-    epochs=50, batch_size=32,
-    class_weight=class_weight_dict,
-    callbacks=[tf.keras.callbacks.EarlyStopping(patience=5, restore_best_weights=True)]
+## V3 Models (No Feature Engineering, 25 features)
+
+| Model | Val Balanced Accuracy | Notes |
+|---|---|---|
+| XGBoost | 0.9027 | Overfit — public score only 0.85488 |
+| LightGBM | 0.8987 | Best generalization — public 0.89764 |
+| RandomForest | 0.8762 | Solid baseline |
+
+## V4 Models (Feature Engineering + Regularization, 56 features)
+
+| Model | Val Balanced Accuracy | Notes |
+|---|---|---|
+| **LightGBM v3 (conservative)** | **0.9337** | max_depth=6, lr=0.005, reg_alpha=1.0 |
+| LightGBM v2 (regularized) | 0.9333 | max_depth=7, lr=0.01, reg_alpha=0.5 |
+| XGBoost v4 (regularized) | ~0.90 | max_depth=6, gamma=0.5, reg_lambda=2.0 |
+| RandomForest v4 | 0.8977 | n_estimators=1500, min_samples_leaf=5 |
+
+### V4 LightGBM v3 Best Config
+
+```python
+lgb.LGBMClassifier(
+    n_estimators=5000, max_depth=6, learning_rate=0.005,
+    subsample=0.65, colsample_bytree=0.65, min_child_weight=15,
+    num_leaves=40, reg_alpha=1.0, reg_lambda=3.0,
+    class_weight="balanced", min_gain_to_split=0.2, max_bin=200,
+    random_state=42, n_jobs=-1, verbose=-1,
 )
 ```
 
-**Result:** 0.9006 balanced accuracy (15 epochs, early stopping)
+## Key Learnings
 
-## 4. Cross-validation on best candidates
+1. **XGBoost overfits** — high val (0.9027) but low public (0.85488)
+2. **LightGBM generalizes best** — val and public scores closely match
+3. **Feature engineering helps** — V4 val scores jumped from ~0.90 to ~0.93
+4. **Regularization is critical** — more regularization = better generalization
+5. **class_weight="balanced"** is essential for all models given 85.9% / 8.4% / 5.8% split
 
-| Model | CV mean ± std |
+## Kaggle Public Scores
+
+| Submission | Public Score |
 |---|---|
-| RandomForest | 0.8771 ± 0.0004 |
-| Neural Net | Not cross-validated (used val split) |
-
-## 5. Comparison table
-
-| Model | Val balanced accuracy | CV mean ± std | Notes |
-|---|---|---|---|
-| LogisticRegression (balanced) | 0.8574 | - | Baseline |
-| RandomForest (tuned, balanced) | 0.8790 | 0.8771 ± 0.0004 | n_estimators=300, min_samples_leaf=5 |
-| **Neural Net (MLP, class-weighted)** | **0.9006** | - | 15 epochs, early stopping |
-
-> **Winner: Neural Net (MLP, class-weighted)** with 0.9006 balanced accuracy
-
-## 6. Save the winning model
-
-```python
-import joblib
-nn.save("models/model_final.h5")
-joblib.dump(le, "models/label_encoder.pkl")
-```
+| submission_v3_lgb_final.csv | **0.89764** |
+| submission_v2_rf_final.csv | 0.89314 |
+| submission_v3_xgb_final.csv | 0.85488 |
 
 ## Deliverable checklist
 
-- [x] Confirmed class balance of `health_condition` before modeling
-- [x] 3 modeling techniques trained, all handling class imbalance
-- [x] All models evaluated with `balanced_accuracy_score`, not plain accuracy
-- [x] Best candidate (RF) cross-validated
-- [x] `experiments.md` filled in with real numbers
-- [x] Final model saved to `models/model_final.*` (+ label encoder for NN)
+- [x] Confirmed class balance before modeling
+- [x] 3+ modeling techniques trained, all handling class imbalance
+- [x] All models evaluated with `balanced_accuracy_score`
+- [x] Best candidates cross-validated
+- [x] `experiments.md` filled in with V4 numbers
+- [x] Final models saved to `models/`
 
 Next: `06_kaggle_submission.md`
