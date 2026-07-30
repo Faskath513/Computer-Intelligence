@@ -5,6 +5,12 @@ models/*.pkl
 models/*.h5
 models/*.txt
 models/*.json
+models/**/*.pkl
+models/**/*.h5
+models/**/*.txt
+models/**/*.bin
+models/**/*.json
+models/**/*.onnx
 __pycache__/
 .ipynb_checkpoints/
 .DS_Store
