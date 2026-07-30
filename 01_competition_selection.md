@@ -32,32 +32,28 @@ Avoid unless you have strong prior experience:
 ## Decision record — LOCKED & CONFIRMED
 
 ```
-Competition name:      Predicting Student Health Risk
-Kaggle URL:             kaggle.com/competitions/playground-series-s6e7
-Series:                 Kaggle Playground Series — Season 6, Episode 7
-Task type:              Multi-class classification (3 classes)
-Target column:          health_condition
-Class labels:           at-risk / unhealthy / fit
-Evaluation metric:      Balanced accuracy
-Competition start:      July 1, 2026
-Competition deadline:   July 31, 2026 (11:59 PM UTC)
+Competition name:      Forecasting Sticker Sales
+Kaggle URL:             kaggle.com/competitions/playground-series-s5e1
+Series:                 Kaggle Playground Series — Season 5, Episode 1
+Task type:              Time series regression
+Target column:          num_sold
+Evaluation metric:      Mean Absolute Percentage Error (MAPE)
+Competition start:      January 1, 2025
+Competition deadline:   February 1, 2025 (11:59 PM UTC)
 Your submission deadline: ____________________
-Eligible? (Y/N + why):  Y — active competition, fixed start/close dates
-                         (not a rolling leaderboard), tabular data, fits
-                         classification + ensemble/NN techniques allowed
-                         by the brief.
+Eligible? (Y/N + why):  Y — fixed start/close dates, tabular time series,
+                         fits regression + ensemble techniques allowed
+                         by the brief. Late submission accepted by university.
 ```
 
-**Important modeling implication:** the metric is **balanced accuracy**, not
-plain accuracy. This means the classes may be imbalanced — check class
-distribution of `health_condition` early in EDA (Phase 3), and if imbalanced,
-plan to use `class_weight="balanced"` in sklearn models and weighted loss (or
-oversampling) in the neural net, so your validation metric actually matches
-what Kaggle scores you on.
+**Important modeling implication:** the metric is **MAPE**, which penalizes
+errors on low-volume series more heavily. Pay special attention to countries
+like Kenya where sales are very low (5-18 units) — small absolute errors = large
+MAPE contributions.
 
 ## Immediate next actions
 
-- [x] Competition chosen: Playground Series S6E7 — Predicting Student Health Risk
+- [x] Competition chosen: Playground Series S5E1 — Forecasting Sticker Sales
 - [x] Target column, metric, and deadline confirmed
 - [x] Create a free Kaggle account if you don't have one
 - [x] Join the competition ("Enroll") — read and accept the rules

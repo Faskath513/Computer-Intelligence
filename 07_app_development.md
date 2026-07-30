@@ -2,20 +2,21 @@
 
 File: `app/app.py`
 
-## 1. Current App (V4)
+## 1. Current App (S5E1)
 
 The app loads:
-- `models/preprocessor_v4.pkl` — V4 preprocessor (56 features)
-- `models/model_lgb_v3.txt` — LightGBM V4 model
-- `models/label_encoder.pkl` — label encoder
-- `models/feature_meta.json` — feature metadata for input widgets
+- `models/s5e1/1_lgb_s5e1.pkl` — LightGBM S5E1 model
+- `data/raw/train_s5e1.csv` — training data for visualization
+- `data/raw/test_s5e1.csv` — test data for predictions
+- `data/processed/test_s5e1_fe.parquet` — precomputed features for prediction
 
-### Feature Engineering in App
-
-The app applies the same `add_features()` function used in training:
-- 31 engineered features computed from 13 original inputs
-- BMI categories, sleep/exercise flags, interaction features, risk scores
-- Categorical encodings (stress_num, quality_num, activity_num, smoking_num)
+### Features
+- **Line chart** — total daily sales by country over time
+- **Box plots** — sales distribution by country and product
+- **Seasonality plot** — monthly average sales by country
+- **Time series explorer** — filter by country, store, product to see individual series
+- **Forecast overlay** — historical data + model predictions for selected series
+- **Submission download** — one-click CSV download
 
 ### How to Run
 
@@ -24,30 +25,23 @@ cd project-root
 streamlit run app/app.py
 ```
 
-### App Features
-
-- **Input form** with 7 numeric inputs + 6 categorical inputs
-- **Predict button** returns color-coded prediction (green=fit, orange=unhealthy, red=at-risk)
-- **Class probabilities** shown for all 3 classes
-- **About expander** with model info (LightGBM V4, val 0.9337)
-
-## 2. App Architecture
+### App Architecture
 
 ```
-User Input (13 features)
+Load train.csv + test.csv
     ↓
-add_features() → 31 new features (44 total raw)
+Visualizations: line charts, box plots, seasonality
     ↓
-preprocessor_v4.pkl → SimpleImputer + OneHotEncoder (56 processed features)
+User selects country / store / product
     ↓
-LightGBM Booster → 3-class prediction
+Load processed features → LightGBM model → predictions
     ↓
-LabelEncoder → at-risk / fit / unhealthy
+Overlay predictions on historical data
     ↓
-Display with probabilities
+Download submission CSV
 ```
 
-## 3. `app/requirements.txt`
+## 2. `app/requirements.txt`
 
 ```
 streamlit
@@ -57,15 +51,16 @@ scikit-learn
 joblib
 lightgbm
 xgboost
+plotly
 ```
 
-## 4. Deliverable checklist
+## 3. Deliverable checklist
 
-- [x] App loads saved model + preprocessor (not retrained on the fly)
-- [x] Form/input covers every feature the pipeline expects
-- [x] Feature engineering matches training pipeline exactly
-- [x] Predict button returns sensible results for normal input
-- [x] Runs from `pip install -r app/requirements.txt` + `streamlit run`
-- [x] Color-coded predictions with class probabilities
+- [x] App loads saved model (not retrained on the fly)
+- [x] Interactive time series explorer with filtering
+- [x] Historical data visualizations (line, box, seasonality)
+- [x] Forecast overlay on selected time series
+- [x] One-click submission CSV download
+- [x] Runs from `streamlit run app/app.py`
 
 Next: `08_integration_testing.md`

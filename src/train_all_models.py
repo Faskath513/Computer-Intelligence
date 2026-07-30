@@ -1,6 +1,6 @@
 """
-Train 3 strong models + ensemble for Playground Series S6E7
-Metric: Balanced Accuracy
+Train 3 strong models + ensemble for Playground Series S5E1
+Metric: MAPE (regression)
 Models: Random Forest, XGBoost, LightGBM, Ensemble
 """
 

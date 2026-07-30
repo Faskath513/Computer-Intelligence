@@ -1,100 +1,81 @@
 # Phase 5 — Modeling
 
-Scripts: `src/train.py`, `src/train_all_models.py`, `src/train_v4.py`
+Scripts: `src/train_5_models_s5e1.py`, `src/submit_s5e1_final.py`
 
-Task: **3-class classification** — target `health_condition` with classes
-`at-risk`, `unhealthy`, `fit`. Scored on **balanced accuracy** (average per-class recall).
+Task: **Time series regression** — target `num_sold`. Scored on **MAPE** (Mean Absolute Percentage Error).
 
-## 0. Class balance (from EDA)
+## Validation Strategy
 
-```
-at-risk      85.9%
-unhealthy     8.4%
-fit           5.8%
-```
+Time-based split: Train on 2010-2015 (189,492 rows), validate on 2016 (31,767 rows).
 
-Both minority classes below 20% — every model uses `class_weight="balanced"`.
+## 5 Models Trained
 
-## V1-V2 Models (Original Features, 25 features)
-
-### Logistic Regression (baseline)
-
+### 1. RandomForest Regressor
 ```python
-lr = LogisticRegression(max_iter=1000, class_weight="balanced")
+RandomForestRegressor(n_estimators=500, max_depth=20, min_samples_leaf=5)
 ```
-**Result:** 0.8574 balanced accuracy
+**Val MAPE: 7.43%** 🏆 Best
 
-### Random Forest (GridSearchCV tuned)
-
+### 2. XGBoost Regressor
 ```python
-rf = RandomForestClassifier(n_estimators=300, min_samples_leaf=5,
-                            class_weight="balanced", random_state=42)
+XGBRegressor(max_depth=8, lr=0.01, reg_alpha=1.0, reg_lambda=2.0)
 ```
-**Result:** 0.8790 balanced accuracy | CV: 0.8771 ± 0.0004
+**Val MAPE: 8.61%** 🥈
 
-### Neural Network (Keras MLP)
-
+### 3. LightGBM Regressor
 ```python
-nn = Sequential([
-    Dense(128, activation="relu"), Dropout(0.3),
-    Dense(64, activation="relu"), Dropout(0.2),
-    Dense(3, activation="softmax"),
-])
+LGBMRegressor(num_leaves=127, max_depth=12, lr=0.01, reg_alpha=1.0, reg_lambda=1.0)
 ```
-**Result:** 0.9006 balanced accuracy (15 epochs, early stopping)
+**Val MAPE: 8.75%** 🥉
 
-## V3 Models (No Feature Engineering, 25 features)
-
-| Model | Val Balanced Accuracy | Notes |
-|---|---|---|
-| XGBoost | 0.9027 | Overfit — public score only 0.85488 |
-| LightGBM | 0.8987 | Best generalization — public 0.89764 |
-| RandomForest | 0.8762 | Solid baseline |
-
-## V4 Models (Feature Engineering + Regularization, 56 features)
-
-| Model | Val Balanced Accuracy | Notes |
-|---|---|---|
-| **LightGBM v3 (conservative)** | **0.9337** | max_depth=6, lr=0.005, reg_alpha=1.0 |
-| LightGBM v2 (regularized) | 0.9333 | max_depth=7, lr=0.01, reg_alpha=0.5 |
-| XGBoost v4 (regularized) | ~0.90 | max_depth=6, gamma=0.5, reg_lambda=2.0 |
-| RandomForest v4 | 0.8977 | n_estimators=1500, min_samples_leaf=5 |
-
-### V4 LightGBM v3 Best Config
-
+### 4. HistGradientBoosting Regressor
 ```python
-lgb.LGBMClassifier(
-    n_estimators=5000, max_depth=6, learning_rate=0.005,
-    subsample=0.65, colsample_bytree=0.65, min_child_weight=15,
-    num_leaves=40, reg_alpha=1.0, reg_lambda=3.0,
-    class_weight="balanced", min_gain_to_split=0.2, max_bin=200,
-    random_state=42, n_jobs=-1, verbose=-1,
-)
+HistGradientBoostingRegressor(max_iter=1000, lr=0.05, max_depth=8)
 ```
+**Val MAPE: 10.97%**
+
+### 5. MLP Neural Network
+```python
+MLPRegressor(hidden_layer_sizes=(256, 128, 64), lr_init=0.001, batch_size=2048)
+```
+**Val MAPE: 20.46%**
+
+## Full Results
+
+| Model | Train MAPE | Val MAPE | Time |
+|---|---|---|---|
+| **RandomForest** | 3.49% | **7.43%** | 77s |
+| XGBoost | 5.21% | 8.61% | 17s |
+| LightGBM | 5.39% | 8.75% | 13s |
+| HistGradientBoost | 6.59% | 10.97% | 13s |
+| MLP Neural Net | 12.43% | 20.46% | 125s |
 
 ## Key Learnings
 
-1. **XGBoost overfits** — high val (0.9027) but low public (0.85488)
-2. **LightGBM generalizes best** — val and public scores closely match
-3. **Feature engineering helps** — V4 val scores jumped from ~0.90 to ~0.93
-4. **Regularization is critical** — more regularization = better generalization
-5. **class_weight="balanced"** is essential for all models given 85.9% / 8.4% / 5.8% split
+1. **RandomForest generalizes best** — lowest validation MAPE for this dataset
+2. **Tree-based models dominate** regression with mixed features — top 4 are tree ensembles
+3. **MLP underperforms** — needs more data or deeper architecture for time series
+4. **Yearly lags matter most** — lag_365, lag_730, lag_1095 are the strongest predictors
+5. **MAPE penalizes low-volume errors** — Kenya series (avg 5-18 sales) require careful handling
 
-## Kaggle Public Scores
+## Submission Files Generated
 
-| Submission | Public Score |
+| File | Model |
 |---|---|
-| submission_v3_lgb_final.csv | **0.89764** |
-| submission_v2_rf_final.csv | 0.89314 |
-| submission_v3_xgb_final.csv | 0.85488 |
+| `submissions/submission_s5e1_rf.csv` | RandomForest (best) |
+| `submissions/submission_s5e1_xgb.csv` | XGBoost |
+| `submissions/submission_s5e1_lgb.csv` | LightGBM |
+| `submissions/submission_s5e1_hgb.csv` | HistGradientBoost |
+| `submissions/submission_s5e1_nn.csv` | MLP Neural Net |
+| `submissions/submission_s5e1_ensemble.csv` | Average of all 5 |
+| `submissions/submission_s5e1_best_rf.csv` | Best model (RandomForest) |
 
 ## Deliverable checklist
 
-- [x] Confirmed class balance before modeling
-- [x] 3+ modeling techniques trained, all handling class imbalance
-- [x] All models evaluated with `balanced_accuracy_score`
-- [x] Best candidates cross-validated
-- [x] `experiments.md` filled in with V4 numbers
-- [x] Final models saved to `models/`
+- [x] 5 modeling techniques trained and compared
+- [x] All models evaluated with MAPE on time-based validation set
+- [x] `experiments.md` filled in with comparison table
+- [x] Models saved to `models/s5e1/`
+- [x] 7 submission CSVs generated
 
 Next: `06_kaggle_submission.md`

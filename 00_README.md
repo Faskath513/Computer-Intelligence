@@ -20,24 +20,20 @@ build-only.
 - [x] 1. Competition selected
 - [x] 2. Environment set up
 - [x] 3. EDA complete
-- [x] 4. Preprocessing pipeline built (V4 with feature engineering)
-- [x] 5. Models trained & compared (V4: LightGBM, XGBoost, RandomForest)
-- [x] 6. Kaggle submissions generated (10 submissions, best public: 0.89764)
-- [x] 7. App built (`app/app.py` with V4 LightGBM + feature engineering)
+- [x] 4. Preprocessing pipeline built (feature engineering for 90 time series)
+- [x] 5. Models trained & compared (5 models: RF, XGBoost, LightGBM, HGB, MLP)
+- [x] 6. Submission CSVs generated (7 files: 5 models + ensemble + best)
+- [x] 7. App built (`app/app.py` with interactive forecasting dashboard)
 - [x] 8. Integration tested
 
 ## Final Results
 
-| Model | Val Balanced Accuracy | Kaggle Public |
+| Model | Val MAPE | Rank |
 |---|---|---|
-| LightGBM V4 (conservative) | **0.9337** | pending |
-| LightGBM V3 (original) | 0.8987 | **0.89764** |
-| Random Forest V4 | 0.8977 | 0.89314 |
-| XGBoost V4 | ~0.90 | 0.85488 |
+| **RandomForest** | **7.43%** | 🥇 |
+| XGBoost | 8.61% | 🥈 |
+| LightGBM | 8.75% | 🥉 |
+| HistGradientBoost | 10.97% | 4 |
+| MLP Neural Net | 20.46% | 5 |
 
-> **Winner: LightGBM V4** — val 0.9337, `submission_v4_lgb_v3.csv`
-
-
-
-
-C:\Users\aasan\anaconda3\python.exe -m streamlit run app/app.py
+> **Winner: RandomForest** — val MAPE 7.43%, `submission_s5e1_best_rf.csv`

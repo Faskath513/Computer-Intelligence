@@ -1,4 +1,4 @@
-# Phase 8 -- Integration Testing & Demo Recording
+# Phase 8 — Integration Testing & Demo Recording
 
 ## 1. Clean-environment test
 
@@ -15,122 +15,113 @@ streamlit run app/app.py
 
 ## 2. Functional test cases
 
-Feed the app a spread of inputs and sanity-check the outputs:
+Test the app with different filter combinations:
 
 | Case | Input | Expected behavior |
 |---|---|---|
-| Typical | mid-range values from training distribution | Reasonable prediction |
-| Edge -- low | near-minimum values seen in training | Still runs, plausible output |
-| Edge -- high | near-maximum values seen in training | Still runs, plausible output |
-| Missing/blank field | leave optional field empty | Handled gracefully, not a crash |
-| Out-of-distribution | a wildly unrealistic value | Doesn't crash; flags low confidence if possible |
+| Default load | No filters | Shows all 90 time series summed |
+| Single country | Select "Kenya" | Shows only Kenya sales |
+| Single store | Select "Premium Sticker Mart" | Shows only that store |
+| Single product | Select "Holographic Goose" | Shows only NaN in training (cold start) |
+| All filters | Country=Norway, Store=Premium, Product=Kaggle | Highest volume series (~3198 avg) |
+| Forecast view | Any selection with model loaded | Shows blue historical + orange forecast lines |
 
 - [x] Log the actual output for each row in a small table
 
-### Test Results (2026-07-27, V4 with feature engineering)
+### Test Results
 
-| Case | Prediction | Probabilities |
+| Case | Visual Output | Predictions |
 |---|---|---|
-| Typical (avg values, first category) | at-risk | at-risk: ~78%, fit: ~1%, unhealthy: ~21% |
-| Healthy student (good sleep, active, good diet) | fit | at-risk: ~5%, fit: ~80%, unhealthy: ~15% |
-| Unhealthy student (bad sleep, sedentary, high stress) | unhealthy | at-risk: ~10%, fit: ~2%, unhealthy: ~88% |
-| Near-min values | varies | Runs without error |
-| Near-max values | varies | Runs without error |
-| Out-of-distribution (bmi=100, HR=200) | unhealthy | Runs without error, high confidence |
+| Default (all) | 6 coloured country lines | Predictions for all 98,550 test rows |
+| Kenya only | Single line, very low values | ~8-18 range (correct for Kenya) |
+| Holographic Goose | NaN shown as gaps in training | Valid predictions in test period |
+| Norway Premium Kaggle | Highest sales line (~3000) | Valid forecast, smooth continuation |
 
-All cases run without errors. Predictions are plausible across all test scenarios.
+All cases run without errors. Predictions are plausible across all scenarios.
 
 ## 3. Consistency check between training and app pipeline
 
-Run one row from the training set through both:
-1. The training script prediction path
-2. The app prediction path
+Run features_s5e1.py then compare model predictions with the app's prediction path.
+Confirm they produce the **same output** for the same input.
 
-Confirm they produce the **same output** for the same input. Any mismatch
-means the app isn't using the exact same fitted preprocessor/model -- go back
-and fix the artifact loading before anything else.
-
-- [x] Consistency check passed: both paths use `preprocessor_v4.pkl` + LightGBM model
+- [x] Consistency check passed: both paths use same feature engineering + model artifacts
 
 ## 4. Model artifact consistency
 
 | Artifact | Status | Notes |
 |---|---|---|
-| `models/preprocessor_v4.pkl` | ✅ | V4 preprocessor, 56 features (13 original + 31 engineered + OHE) |
-| `models/model_lgb_v3.txt` | ✅ | LightGBM V4, val balanced accuracy 0.9337 |
-| `models/model_rf_v3.pkl` | ✅ | RF V3, val balanced accuracy 0.8762 |
-| `models/model_xgb_v3.json` | ✅ | XGBoost V3, val balanced accuracy 0.9027 |
-| `models/label_encoder.pkl` | ✅ | Maps [at-risk, fit, unhealthy] |
-| `models/feature_meta.json` | ✅ | Correct 7 numeric + 6 categorical features |
-| `submissions/submission_v4_lgb_v3.csv` | ✅ | 295,753 rows, val 0.9337, best candidate |
+| `models/s5e1/1_lgb_s5e1.pkl` | ✅ | LightGBM, val MAPE 8.75% |
+| `models/s5e1/2_xgb_s5e1.pkl` | ✅ | XGBoost, val MAPE 8.61% |
+| `models/s5e1/3_rf_s5e1.pkl` | ✅ | RandomForest, val MAPE 7.43% (best) |
+| `models/s5e1/4_hgb_s5e1.pkl` | ✅ | HistGradientBoost, val MAPE 10.97% |
+| `models/s5e1/5_nn_s5e1.pkl` | ✅ | MLP Neural Net, val MAPE 20.46% |
+| `models/s5e1/5_scaler_s5e1.pkl` | ✅ | StandardScaler for MLP |
+| `models/s5e1/model_comparison.csv` | ✅ | Full comparison table |
+| `data/processed/train_s5e1_fe.parquet` | ✅ | 221,259 rows, 42 columns |
+| `data/processed/test_s5e1_fe.parquet` | ✅ | 98,550 rows, 41 columns |
 
-### Submission History
+### Submission Files
 
-| Submission | Public Score | Notes |
+| File | Model | Val MAPE |
 |---|---|---|
-| submission_v3_lgb_final.csv | **0.89764** | Best public score so far |
-| submission_v2_rf_final.csv | 0.89314 | RF baseline |
-| submission_v3_xgb_final.csv | 0.85488 | XGBoost overfit |
-| submission_v4_lgb_v2.csv | - | Val 0.9333, pending upload |
-| submission_v4_lgb_v3.csv | - | Val 0.9337, pending upload |
-| submission_v4_rf.csv | - | Val 0.8977, pending upload |
-| submission_v4_xgb.csv | - | Val ~0.90, pending upload |
+| `submissions/submission_s5e1_rf.csv` | RandomForest | **7.43%** |
+| `submissions/submission_s5e1_xgb.csv` | XGBoost | 8.61% |
+| `submissions/submission_s5e1_lgb.csv` | LightGBM | 8.75% |
+| `submissions/submission_s5e1_hgb.csv` | HistGradientBoost | 10.97% |
+| `submissions/submission_s5e1_nn.csv` | MLP Neural Net | 20.46% |
+| `submissions/submission_s5e1_ensemble.csv` | Ensemble | — |
+| `submissions/submission_s5e1_best_rf.csv` | RandomForest (best) | **7.43%** |
 
 ## 5. App Verification
 
-- [x] App loads `preprocessor_v4.pkl` correctly
 - [x] App loads LightGBM model correctly
-- [x] Feature engineering in app matches training pipeline (add_features function)
-- [x] Predictions include class probabilities
-- [x] UI shows color-coded results (green=fit, orange=unhealthy, red=at-risk)
+- [x] App shows historical sales visualizations (line, box, seasonality)
+- [x] Time series explorer works with all filter combinations
+- [x] Forecast overlay shows predictions for selected series
+- [x] Download button produces valid CSV
 - [x] "About this model" expander shows correct model info
 
 ## 6. Demo recording
 
-- [ ] Screen-record a 2-4 minute walkthrough: launch app -> enter a few different
-      inputs -> show predictions -> briefly show the model/EDA notebook to tie it together
+- [ ] Screen-record a 2-4 minute walkthrough: launch app → explore filters → show predictions → briefly show the EDA/feature engineering scripts to tie it together
 - [ ] Keep it simple and narrated in plain language
 - [ ] Save the recording somewhere retrievable
 
 ## 7. Final repo state
 
-- [x] All model artifacts rebuilt on correct 690K dataset
-- [x] `experiments.md` has final V4 numbers
-- [x] `submissions/` has 10 submission CSVs
-- [ ] Kaggle leaderboard screenshots saved (pending manual upload)
-- [x] App runs standalone with V4 LightGBM + feature engineering
-- [ ] Notebook outputs re-run (GridSearchCV too slow for nbconvert)
-- [ ] Everything committed to git with a clear final commit message
+- [x] All model artifacts rebuilt for S5E1 Sticker Sales
+- [x] `experiments.md` has final 5-model comparison
+- [x] `submissions/` has 7 submission CSVs
+- [x] App runs standalone with LightGBM model
+- [x] Everything committed to git with a clear final commit message
 
 ## 8. Files Summary
 
 ### Source Code
-- `src/train_v4.py` -- V4 training with feature engineering
-- `src/train_all_models.py` -- V3 training (RF, XGBoost, LightGBM)
-- `src/submit_v4_all.py` -- Generate all V4 submissions
-- `src/submit_best.py` -- Quick retrain+submit for best model
-- `src/cv_and_submit.py` -- Cross-validation + submission
-- `app/app.py` -- Streamlit web app (V4)
+- `src/features_s5e1.py` — Feature engineering pipeline
+- `src/train_s5e1.py` — 2-model training (LGBM, XGBoost)
+- `src/train_5_models_s5e1.py` — 5-model training + comparison
+- `src/submit_s5e1_final.py` — Full-data training + ensemble
+- `app/app.py` — Streamlit web app (S5E1)
 
 ### Model Files
-- `models/preprocessor_v4.pkl` -- V4 preprocessor (active)
-- `models/preprocessor_v3.pkl` -- V3 preprocessor
-- `models/model_lgb_v3.txt` -- LightGBM model (best)
-- `models/model_rf_v3.pkl` -- Random Forest model
-- `models/model_xgb_v3.json` -- XGBoost model
-- `models/label_encoder.pkl` -- Label encoder
+- `models/s5e1/1_lgb_s5e1.pkl` — LightGBM model
+- `models/s5e1/2_xgb_s5e1.pkl` — XGBoost model
+- `models/s5e1/3_rf_s5e1.pkl` — RandomForest model (best)
+- `models/s5e1/4_hgb_s5e1.pkl` — HistGradientBoost model
+- `models/s5e1/5_nn_s5e1.pkl` — MLP Neural Net model
 
 ### Documentation
-- `experiments.md` -- Updated with V4 results
-- `08_integration_testing.md` -- This file
+- `experiments.md` — Updated with S5E1 results
+- `08_integration_testing.md` — This file
 
-## Build phase -- done
+## Build phase — done
 
 At this point the technical build is complete:
-- Working, validated Kaggle submissions (0.89764 public, 0.9337 val)
-- Trained and compared 3+ models across 4 iterations
-- Working web app using V4 pipeline with feature engineering
+- 5 trained and compared models (RF, XGBoost, LightGBM, HGB, MLP)
+- 7 submission CSVs ready for university submission
+- Working web app with interactive forecasting dashboard
 - Tested end-to-end
 
-Everything from here (the 4000-word report) is a separate phase, built from
+Everything from here (the report) is a separate phase, built from
 what you've documented in `experiments.md`, your EDA findings, and this demo.

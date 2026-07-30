@@ -1,70 +1,64 @@
 # Phase 4 — Feature Engineering & Preprocessing Pipeline
 
-Files: `src/data_prep.py`, `src/features.py`, `src/train_v4.py`
+Script: `src/features_s5e1.py`
 
-## V1-V3 Pipeline (Original)
+## Global Forecasting Approach
 
-7 numeric features + 6 categorical features → StandardScaler + OneHotEncoder → 25 features.
+Train a single model across all 90 time series simultaneously. This allows
+the model to learn patterns from high-volume series and apply them to
+low-volume series (especially Holographic Goose which has no training data).
 
-## V4 Pipeline (Current — with Feature Engineering)
+## Features Engineered (41 total)
 
-Original 13 features → **31 engineered features** → SimpleImputer only (no scaler for tree models) → 56 features.
+### Date Features (10)
+- year, month, dayofyear, quarter, dayofweek, weekend
+- sin_month, cos_month (cyclic encoding)
+- sin_dayofyear, cos_dayofyear (cyclic encoding)
 
-### Engineered Features (31 new)
+### Trend Features (2)
+- days_since_start, elapsed_years
 
-| Feature | Type | Logic |
-|---|---|---|
-| sleep_deprived | binary | sleep_duration < 6 |
-| good_sleep | binary | sleep_duration >= 7 |
-| oversleep | binary | sleep_duration > 8.5 |
-| hr_low | binary | heart_rate < 60 |
-| hr_normal | binary | 60 <= heart_rate <= 100 |
-| hr_high | binary | heart_rate > 100 |
-| bmi_underweight | binary | bmi < 18.5 |
-| bmi_normal | binary | 18.5 <= bmi < 25 |
-| bmi_overweight | binary | 25 <= bmi < 30 |
-| bmi_obese | binary | bmi >= 30 |
-| low_steps | binary | step_count < 5000 |
-| high_steps | binary | step_count > 10000 |
-| low_exercise | binary | exercise_duration < 20 |
-| high_exercise | binary | exercise_duration > 60 |
-| low_water | binary | water_intake < 1.5 |
-| good_water | binary | water_intake > 2.5 |
-| low_calorie | binary | calorie_expenditure < 1500 |
-| high_calorie | binary | calorie_expenditure > 2800 |
-| sleep_exercise_ratio | numeric | sleep_duration / (exercise/60 + 0.1) |
-| sleep_x_exercise | numeric | sleep_duration * exercise_duration |
-| bmi_x_exercise | numeric | bmi * exercise_duration |
-| bmi_x_sleep | numeric | bmi * sleep_duration |
-| hr_bmi_ratio | numeric | heart_rate / (bmi + 0.1) |
-| calorie_water_ratio | numeric | calorie / (water*1000 + 0.1) |
-| step_calorie_ratio | numeric | steps / (calorie + 0.1) |
-| stress_num | numeric | stress_level mapped to 0/1/2 |
-| quality_num | numeric | sleep_quality mapped to 0/1/2 |
-| activity_num | numeric | physical_activity_level mapped to 0/1/2 |
-| smoking_num | numeric | smoking_alcohol mapped to 0/1/2 |
-| risk_score | numeric | mean of stress_num, quality_num, smoking_num |
-| health_score | numeric | mean of activity_num, quality_num |
+### Yearly Lag Features (3)
+- lag_yearly_365, lag_yearly_730, lag_yearly_1095
+- Always point to training data even for test rows
 
-### Preprocessing Changes (V4)
+### Series-Level Statistics (5)
+- overall_mean, overall_std, overall_median, overall_min, overall_max
+- Computed per (country, store, product) from all training data
 
-- **No StandardScaler** — tree-based models (LightGBM, RF, XGBoost) don't need it
-- **SimpleImputer only** — median for numerics, most_frequent for categoricals
-- **OneHotEncoder** for categoricals (handle_unknown="ignore")
+### Monthly Historical Averages (3)
+- monthly_mean, monthly_std, monthly_median
+- Computed per (country, store, product, month)
 
-### Key Decisions from EDA
+### Recent Statistics (5)
+- recent_mean, recent_std, recent_median (from the last training year)
+- last90_mean, last90_std, last90_median, last90_min, last90_max
 
-- **12% missing in stress_level**, 11% in sleep_duration → imputation essential
-- **85.9% at-risk, 8.4% unhealthy, 5.8% fit** → class_weight="balanced" required
-- **All categoricals low cardinality** (2-3 values) → OneHotEncoder appropriate
-- **No high correlations** → all features retained
+### Year-over-Year Features (2)
+- yearly_mean, yearly_change (from aggregated yearly data)
+
+### Categorical Encodings (3)
+- country_encoded, store_encoded, product_encoded (LabelEncoder)
+
+## Preprocessing
+
+- **No scaling** needed — tree-based models handle raw values natively
+- **NaN handling** — Holographic Goose series has NaN targets; fill missing lags/stats with training median
+- **Rows with NaN target** (Holographic Goose training data) dropped before training
+
+## Key Decisions from EDA
+
+- **Wide value range (5 to 5939)** → model needs to learn multiplicative patterns, not additive
+- **Holographic Goose cold start** → global model + target encodings let it borrow from other products
+- **Yearly lags (365/730/1095)** → capture same-day-last-year patterns without leaking future data
+- **Monthly stats** → capture intra-year seasonality robustly
 
 ## Deliverable checklist
 
-- [x] `data_prep.py` and `features.py` importable with no notebook dependency
-- [x] Preprocessor fit only on training data, applied (not re-fit) to val/test
-- [x] `models/preprocessor_v4.pkl` saved (V4 with feature engineering)
-- [x] Feature engineering function (`add_features`) shared between training + app
-- [x] 56 features after preprocessing (13 original + 31 engineered + OHE)
+- [x] `features_s5e1.py` importable with no notebook dependency
+- [x] Feature engineering applied identically to train + test
+- [x] Processed data saved to `data/processed/train_s5e1_fe.parquet`
+- [x] All NaN values handled (filled with training median)
+- [x] 41 features after engineering
 
 Next: `05_modeling.md`

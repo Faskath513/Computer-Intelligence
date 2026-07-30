@@ -20,14 +20,17 @@ MODEL_DIR = os.path.join(os.path.dirname(__file__), "..", "models")
 def load_data():
     train = pd.read_csv('data/raw/train_s5e1.csv', parse_dates=['date'])
     test = pd.read_csv('data/raw/test_s5e1.csv', parse_dates=['date'])
-    sample = pd.read_csv('data/raw/sample_submission_s5e1.csv')
-    return train, test, sample
+    sub = pd.read_csv('data/raw/sample_submission_s5e1.csv')
+    return train, test, sub
 
 @st.cache_resource
 def load_model():
-    lgb_path = os.path.join(MODEL_DIR, 's5e1', '1_lgb_s5e1.pkl')
+    lgb_path = os.path.join(MODEL_DIR, 's5e1', 'lgb_s5e1_full.pkl')
+    xgb_path = os.path.join(MODEL_DIR, 's5e1', 'xgb_s5e1_full.pkl')
     if os.path.exists(lgb_path):
-        return joblib.load(lgb_path), 'LightGBM'
+        return joblib.load(lgb_path), 'lgb'
+    elif os.path.exists(xgb_path):
+        return joblib.load(xgb_path), 'xgb'
     return None, None
 
 train, test, sample = load_data()
@@ -64,7 +67,8 @@ st.subheader("Monthly Seasonality")
 train['month'] = train['date'].dt.month
 monthly = train.groupby(['month', 'country'])['num_sold'].mean().reset_index()
 fig4 = px.line(monthly, x='month', y='num_sold', color='country',
-               title='Average Monthly Sales by Country', markers=True)
+               title='Average Monthly Sales by Country',
+               markers=True)
 st.plotly_chart(fig4, use_container_width=True)
 
 st.subheader("Explore a Time Series")
@@ -98,7 +102,7 @@ if model is not None:
         test_pred = model.predict(test_fe[feature_cols])
         test_pred = np.maximum(test_pred, 0)
     else:
-        sub = pd.read_csv('submissions/submission_s5e1_rf.csv')
+        sub = pd.read_csv('submissions/submission_s5e1_ensemble.csv')
         test_pred = sub['num_sold'].values
     test['prediction'] = test_pred
     test['num_sold'] = test_pred
@@ -114,7 +118,7 @@ if model is not None:
         fig6 = go.Figure()
         fig6.add_trace(go.Scatter(
             x=viz_test['date'], y=viz_test['prediction'],
-            mode='lines+markers', name='Forecast',
+            mode='lines+markers', name=f'Forecast',
             line=dict(color='orange', width=2)
         ))
         train_viz = train[(train['country'] == sel_c2) &
@@ -133,15 +137,16 @@ if model is not None:
     sub = sample.copy()
     sub['num_sold'] = test_pred
     st.dataframe(sub.head(10), use_container_width=True, hide_index=True)
+
     csv = sub.to_csv(index=False).encode('utf-8')
     st.download_button("Download Submission CSV", csv, "submission_s5e1.csv", "text/csv")
 else:
-    st.warning("No trained model found. Run src/train_5_models_s5e1.py first.")
+    st.warning("No trained model found. Run train_s5e1.py first.")
 
 with st.expander("About this model"):
-    st.write(f"- **Model:** {model_name} Regressor")
+    st.write(f"- **Model:** {model_name.upper() if model else 'N/A'} Regressor")
     st.write("- **Metric:** Mean Absolute Percentage Error (MAPE)")
     st.write("- **Features:** Date, trend, yearly lags, target encodings, monthly stats")
-    st.write("- **Validation MAPE:** ~7.43% (2016 holdout, RandomForest)")
+    st.write("- **Validation MAPE:** ~8.6% (2016 holdout)")
     st.write("- **90 time series:** 6 countries × 3 stores × 5 products")
     st.write("- **Competition:** Kaggle Playground Series S5E1, Jan 2025")
