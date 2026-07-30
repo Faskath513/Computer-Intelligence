@@ -36,3 +36,8 @@ build-only.
 | XGBoost V4 | ~0.90 | 0.85488 |
 
 > **Winner: LightGBM V4** — val 0.9337, `submission_v4_lgb_v3.csv`
+
+
+
+
+C:\Users\aasan\anaconda3\python.exe -m streamlit run app/app.py
